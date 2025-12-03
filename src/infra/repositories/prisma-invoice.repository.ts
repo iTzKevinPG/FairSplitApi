@@ -49,11 +49,51 @@ export class PrismaInvoiceRepository implements InvoiceRepository {
     );
   }
 
-  async findByEvent(_eventId: string): Promise<Invoice[]> {
-    throw new Error('Method not implemented.');
+  async findByEvent(eventId: string): Promise<Invoice[]> {
+    const invoices = await this._prisma.invoice.findMany({
+      where: { eventId },
+      include: {
+        participations: true,
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+    return invoices.map(
+      (inv) =>
+        new Invoice(
+          inv.id,
+          inv.eventId,
+          inv.payerId,
+          inv.description,
+          Number(inv.amount),
+          inv.divisionMethod as 'equal' | 'consumption',
+          inv.participations.map((p) => new Participation(p.personId, Number(p.amount))),
+          inv.tipAmount ? Number(inv.tipAmount) : 0,
+          inv.birthdayPersonId ?? undefined,
+          (inv as { consumptions?: Record<string, number> }).consumptions,
+        ),
+    );
   }
 
-  async findById(_id: string): Promise<Invoice | null> {
-    throw new Error('Method not implemented.');
+  async findById(id: string): Promise<Invoice | null> {
+    const inv = await this._prisma.invoice.findUnique({
+      where: { id },
+      include: {
+        participations: true,
+      },
+    });
+    if (!inv) return null;
+
+    return new Invoice(
+      inv.id,
+      inv.eventId,
+      inv.payerId,
+      inv.description,
+      Number(inv.amount),
+      inv.divisionMethod as 'equal' | 'consumption',
+      inv.participations.map((p) => new Participation(p.personId, Number(p.amount))),
+      inv.tipAmount ? Number(inv.tipAmount) : 0,
+      inv.birthdayPersonId ?? undefined,
+      (inv as { consumptions?: Record<string, number> }).consumptions,
+    );
   }
 }
