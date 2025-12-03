@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { InvoiceRepository } from '../ports/InvoiceRepository';
+import { InvoiceRepository } from '../ports/invoice-repository';
 
 @Injectable()
-export class CreateInvoiceUseCase {
+export class GetEventSummaryUseCase {
   constructor(private readonly _invoiceRepository: InvoiceRepository) {}
 
   // TODO: implement use case

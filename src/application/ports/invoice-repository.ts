@@ -1,4 +1,4 @@
-import { Invoice } from '../../domain/invoice/Invoice';
+import { Invoice } from '../../domain/invoice/invoice';
 
 export interface InvoiceRepository {
   create(invoice: Invoice): Promise<Invoice>;

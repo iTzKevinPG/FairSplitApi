@@ -35,6 +35,7 @@ model Invoice {
   divisionMethod    String
   tipAmount         Decimal?        @db.Decimal(10, 2)
   birthdayPersonId  String?
+  consumptions      Json?
   event             Event           @relation(fields: [eventId], references: [id], onDelete: Cascade)
   eventId           String
   payer             Person          @relation("InvoicePayer", fields: [payerId], references: [id])
