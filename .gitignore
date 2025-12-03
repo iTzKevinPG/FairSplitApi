@@ -1,0 +1,27 @@
+# Dependencies
+node_modules
+
+# Builds
+dist
+
+# Env files
+.env
+.env.*.local
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Prisma
+prisma/dev.db
+prisma/dev.db-journal
+
+# Local volumes
+postgres-data
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea
+*.swp
