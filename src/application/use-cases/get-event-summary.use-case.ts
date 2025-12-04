@@ -2,6 +2,7 @@ import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { EventRepository } from '../ports/event-repository';
 import { InvoiceRepository } from '../ports/invoice-repository';
 import { ParticipantRepository } from '../ports/participant-repository';
+import { Participation } from '../../domain/invoice/participation';
 
 export type SummaryItem = {
   participantId: string;
@@ -38,7 +39,7 @@ export class GetEventSummaryUseCase {
       if (payerTotals) {
         payerTotals.paid = this.round2(payerTotals.paid + totalWithTip);
       }
-      inv.participations.forEach((part) => {
+      inv.participations.forEach((part: Participation) => {
         const t = totals.get(part.personId);
         if (t) {
           t.owed = this.round2(t.owed + part.finalAmount);

@@ -11,7 +11,7 @@ export class Invoice {
     public readonly amount: number,
     public readonly divisionMethod: DivisionMethod,
     public readonly participations: Participation[],
-    public readonly tipAmount: number = 0,
+    public readonly tipAmount: number,
     public readonly birthdayPersonId?: string,
     public readonly consumptions?: Record<string, number>,
   ) {}

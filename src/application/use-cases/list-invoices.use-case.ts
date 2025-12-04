@@ -40,12 +40,13 @@ export class ListInvoicesUseCase {
           payerName = person?.name ?? '';
           payerNames.set(inv.payerId, payerName);
         }
+        const safePayerName = payerName ?? '';
         return {
           id: inv.id,
           description: inv.description,
           totalAmount: inv.amount,
           payerId: inv.payerId,
-          payerName,
+          payerName: safePayerName,
           participantsCount: inv.participations.length,
           divisionMethod: inv.divisionMethod,
           tipAmount: inv.tipAmount,
