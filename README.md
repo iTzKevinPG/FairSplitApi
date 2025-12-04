@@ -8,6 +8,7 @@ Backend NestJS + TypeScript alineado con la arquitectura limpia (API → applica
 - npm
 - (Local) Docker + Docker Compose para la base de datos
 - Variables de entorno: ver `.env.example` y crea tu `.env` con al menos `DATABASE_URL`, `PORT`, `CORS_ALLOWED_ORIGINS` (opcional), `AUTH_SECRET` (para firmar tokens en dev)
+  - Opcional para login sin email real: `LOGIN_ACCESS_CODE` (código fijo que reemplaza el OTP; se muestra en logs)
 
 ## Cómo levantar en local
 
@@ -64,7 +65,7 @@ Credenciales por defecto: user `billsplitter`, pass `billsplitter`, db `billspli
 - `GET /events/:eventId/transfers` — transferencias sugeridas
 - `GET /events/:eventId/full-summary` — “bento” consolidado
 - Auth (beta, login sin password):
-  - `POST /auth/request-code` — envía un código a un email (placeholder: se loguea en consola).
+  - `POST /auth/request-code` — envía un código a un email (placeholder: se loguea en consola; si `LOGIN_ACCESS_CODE` está definido, se usa ese código fijo).
   - `POST /auth/verify-code` — verifica código y devuelve `{ token, user }`, creando el perfil si no existe.
 
 ## Contrato de errores
@@ -84,3 +85,5 @@ Todas las excepciones pasan por un filtro global y usan un formato uniforme:
 ```
 
 Códigos frecuentes: `VALIDATION_ERROR`/`BAD_REQUEST` (400), `EVENT_NOT_FOUND`/`PARTICIPANT_NOT_FOUND`/`INVOICE_NOT_FOUND` (404), `PARTICIPANT_HAS_INVOICES` (409), `CONFLICT` (409), `INTERNAL_SERVER_ERROR` (500).
+
+Icon By - <a href="https://www.flaticon.com/free-icons/bitcoin-encryption" title="bitcoin-encryption icons">Bitcoin-encryption icons created by juicy_fish - Flaticon</a> 

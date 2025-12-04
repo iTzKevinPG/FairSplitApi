@@ -11,8 +11,16 @@ export class AuthCodeService {
   private readonly codes = new Map<string, StoredCode>();
   private readonly codeTtlMs = 10 * 60 * 1000; // 10 minutes
   private readonly resendCooldownMs = 45 * 1000; // per-email cooldown to reduce abuse
+  private readonly fixedCode = (process.env.LOGIN_ACCESS_CODE || '').trim();
 
   async sendCode(email: string): Promise<void> {
+    // If a fixed code is configured, we just log a hint and skip per-email generation.
+    if (this.fixedCode) {
+      // eslint-disable-next-line no-console
+      console.info(`Login code for ${email}: ${this.fixedCode} (fixed code)`);
+      return;
+    }
+
     const now = Date.now();
     const existing = this.codes.get(email);
     if (existing && now - existing.lastSentAt < this.resendCooldownMs) {
@@ -37,6 +45,10 @@ export class AuthCodeService {
 
   // For future HB-A2 verification use
   verifyCode(email: string, code: string): boolean {
+    if (this.fixedCode) {
+      return code === this.fixedCode;
+    }
+
     const stored = this.codes.get(email);
     if (!stored) return false;
     const now = Date.now();
