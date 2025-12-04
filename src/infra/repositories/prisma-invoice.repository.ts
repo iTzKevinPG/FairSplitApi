@@ -24,7 +24,9 @@ export class PrismaInvoiceRepository implements InvoiceRepository {
           createMany: {
             data: invoice.participations.map((p) => ({
               personId: p.personId,
-              amount: p.amount,
+              baseAmount: p.baseAmount,
+              tipShare: p.tipShare,
+              finalAmount: p.finalAmount,
             })),
           },
         },
@@ -42,7 +44,15 @@ export class PrismaInvoiceRepository implements InvoiceRepository {
       created.description,
       Number(created.amount),
       created.divisionMethod as 'equal' | 'consumption',
-      participations.map((p) => new Participation(p.personId, Number(p.amount))),
+      participations.map(
+        (p) =>
+          new Participation(
+            p.personId,
+            Number(p.baseAmount),
+            Number(p.tipShare),
+            Number(p.finalAmount),
+          ),
+      ),
       created.tipAmount ? Number(created.tipAmount) : 0,
       created.birthdayPersonId ?? undefined,
       (created as { consumptions?: Record<string, number> }).consumptions,
@@ -66,7 +76,15 @@ export class PrismaInvoiceRepository implements InvoiceRepository {
           inv.description,
           Number(inv.amount),
           inv.divisionMethod as 'equal' | 'consumption',
-          inv.participations.map((p) => new Participation(p.personId, Number(p.amount))),
+          inv.participations.map(
+            (p) =>
+              new Participation(
+                p.personId,
+                Number(p.baseAmount),
+                Number(p.tipShare),
+                Number(p.finalAmount),
+              ),
+          ),
           inv.tipAmount ? Number(inv.tipAmount) : 0,
           inv.birthdayPersonId ?? undefined,
           (inv as { consumptions?: Record<string, number> }).consumptions,
@@ -90,7 +108,15 @@ export class PrismaInvoiceRepository implements InvoiceRepository {
       inv.description,
       Number(inv.amount),
       inv.divisionMethod as 'equal' | 'consumption',
-      inv.participations.map((p) => new Participation(p.personId, Number(p.amount))),
+      inv.participations.map(
+        (p) =>
+          new Participation(
+            p.personId,
+            Number(p.baseAmount),
+            Number(p.tipShare),
+            Number(p.finalAmount),
+          ),
+      ),
       inv.tipAmount ? Number(inv.tipAmount) : 0,
       inv.birthdayPersonId ?? undefined,
       (inv as { consumptions?: Record<string, number> }).consumptions,

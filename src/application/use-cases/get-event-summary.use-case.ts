@@ -41,7 +41,7 @@ export class GetEventSummaryUseCase {
       inv.participations.forEach((part) => {
         const t = totals.get(part.personId);
         if (t) {
-          t.owed = this.round2(t.owed + part.amount);
+          t.owed = this.round2(t.owed + part.finalAmount);
         }
       });
     });

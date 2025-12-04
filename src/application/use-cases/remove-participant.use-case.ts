@@ -1,4 +1,4 @@
-import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { EventRepository } from '../ports/event-repository';
 import { ParticipantRepository } from '../ports/participant-repository';
 
@@ -30,7 +30,7 @@ export class RemoveParticipantUseCase {
 
     const hasInvoices = await this._participantRepository.hasInvoices(event.id, participant.id);
     if (hasInvoices) {
-      throw new BadRequestException({
+      throw new ConflictException({
         code: 'PARTICIPANT_HAS_INVOICES',
         message: 'Cannot delete participant with associated invoices',
       });

@@ -4,6 +4,7 @@ import { ValidationError } from 'class-validator';
 import { NestFactory } from '@nestjs/core';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
+import { HttpExceptionFilter } from './shared/filters/http-exception.filter';
 
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule);
@@ -29,6 +30,7 @@ async function bootstrap(): Promise<void> {
       },
     }),
   );
+  app.useGlobalFilters(new HttpExceptionFilter());
   app.enableCors({
     origin: process.env.CORS_ALLOWED_ORIGINS
       ? process.env.CORS_ALLOWED_ORIGINS.split(',').map((origin) => origin.trim())

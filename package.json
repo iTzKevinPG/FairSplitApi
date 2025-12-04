@@ -11,7 +11,12 @@
     "format": "prettier --write \"{src,test}/**/*.ts\"",
     "test": "echo \"No tests yet\"",
     "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate dev"
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:migrate:deploy": "prisma migrate deploy",
+    "prisma:migrate:create": "prisma migrate dev --create-only",
+    "prisma:format": "prisma format",
+    "db:up": "docker compose up -d db",
+    "db:logs": "docker compose logs -f db"
   },
   "keywords": [],
   "author": "",

@@ -44,18 +44,17 @@ export class GetInvoiceUseCase {
       throw new NotFoundException({ code: 'INVOICE_NOT_FOUND', message: 'Invoice not found' });
     }
 
-    const tipShares = this.calculateTipShares(invoice.tipAmount ?? 0, invoice.participations);
     const participations: InvoiceParticipationDetail[] = [];
 
     for (const participation of invoice.participations) {
       const person = await this._participantRepository.findById(event.id, participation.personId);
       const name = person?.name ?? '';
-      const tipShare = tipShares.get(participation.personId) ?? 0;
-      const baseAmount = this.round2(participation.amount - tipShare);
+      const tipShare = this.round2(participation.tipShare);
+      const baseAmount = this.round2(participation.baseAmount);
       participations.push({
         participantId: participation.personId,
         participantName: name,
-        amountAssigned: this.round2(participation.amount),
+        amountAssigned: this.round2(participation.finalAmount),
         baseAmount,
         tipShare,
         isBirthdayPerson: invoice.birthdayPersonId === participation.personId,
@@ -76,26 +75,6 @@ export class GetInvoiceUseCase {
       birthdayPersonId: invoice.birthdayPersonId,
       participations,
     };
-  }
-
-  private calculateTipShares(tipAmount: number, participations: { personId: string }[]) {
-    const shares = new Map<string, number>();
-    const n = participations.length;
-    if (tipAmount <= 0 || n === 0) {
-      participations.forEach((p) => shares.set(p.personId, 0));
-      return shares;
-    }
-    const tipPer = this.round2(tipAmount / n);
-    let allocated = 0;
-    participations.forEach((p, idx) => {
-      if (idx === participations.length - 1) {
-        shares.set(p.personId, this.round2(tipAmount - allocated));
-      } else {
-        shares.set(p.personId, tipPer);
-        allocated += tipPer;
-      }
-    });
-    return shares;
   }
 
   private round2(value: number): number {

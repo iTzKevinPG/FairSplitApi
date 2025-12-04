@@ -260,19 +260,19 @@ export class CreateInvoiceUseCase {
     const participations: Participation[] = [];
     let allocated = 0;
     participantIds.forEach((id, index) => {
-      const base = baseShares[id] ?? 0;
-      const tip = tipShares[id] ?? 0;
-      let amount = this.round2(base + tip);
-      allocated += amount;
+      const base = this.round2(baseShares[id] ?? 0);
+      let tip = this.round2(tipShares[id] ?? 0);
+      let finalAmount = this.round2(base + tip);
 
-      // On last participant, adjust any rounding drift to ensure totals match
       if (index === participantIds.length - 1) {
-        const expectedTotal = totalAmount + tipAmount;
-        const diff = this.round2(expectedTotal - allocated);
-        amount = this.round2(amount + diff);
+        const expectedTotal = this.round2(totalAmount + tipAmount);
+        const diff = this.round2(expectedTotal - (allocated + finalAmount));
+        tip = this.round2(tip + diff);
+        finalAmount = this.round2(base + tip);
       }
 
-      participations.push(new Participation(id, amount));
+      allocated = this.round2(allocated + finalAmount);
+      participations.push(new Participation(id, base, tip, finalAmount));
     });
     return participations;
   }
