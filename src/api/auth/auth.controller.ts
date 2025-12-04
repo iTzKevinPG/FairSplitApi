@@ -37,7 +37,7 @@ export class AuthController {
     if (!isValid) {
       throw new BadRequestException({
         code: 'INVALID_CODE',
-        message: 'Código inválido o expirado',
+        message: 'Codigo inválido o expirado',
       });
     }
 

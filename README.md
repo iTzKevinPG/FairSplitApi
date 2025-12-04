@@ -47,7 +47,7 @@ Credenciales por defecto: user `billsplitter`, pass `billsplitter`, db `billspli
 ### Nota sobre `prisma/` en la raíz
 
 - Prisma CLI busca por defecto `prisma/schema.prisma` en la raíz; mantenerlo ahí evita banderas extra en scripts y simplifica CI/CD.
-- Aunque conceptualmente pertenece a infraestructura, lo tratamos como tooling externo al código de negocio; si algún día se mueve a `infra/prisma`, habría que ajustar los scripts (`"prisma": { "schema": "infra/prisma/schema.prisma" }`) y pipelines.
+- Aunque conceptualmente pertenece a infraestructura, lo tratamos como tooling externo al codigo de negocio; si algún día se mueve a `infra/prisma`, habría que ajustar los scripts (`"prisma": { "schema": "infra/prisma/schema.prisma" }`) y pipelines.
 
 ## Seguridad básica
 

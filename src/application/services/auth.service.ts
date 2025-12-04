@@ -42,25 +42,27 @@ export class AuthService {
 
   private signToken(userId: string, email: string): string {
     const secret = process.env.AUTH_SECRET || 'dev-auth-secret';
-    const payload = `${userId}.${email}.${Date.now()}`;
+    const payloadObj = { userId, email, iat: Date.now() };
+    const payload = Buffer.from(JSON.stringify(payloadObj)).toString('base64url');
     const signature = createHmac('sha256', secret).update(payload).digest('hex');
-    return Buffer.from(`${payload}.${signature}`).toString('base64url');
+    return `${payload}.${signature}`;
   }
 
   async authenticate(token: string): Promise<{ id: string; email: string } | null> {
     try {
-      const decoded = Buffer.from(token, 'base64url').toString('utf8');
-      const parts = decoded.split('.');
-      if (parts.length !== 4) return null;
-      const [userId, email, issuedAt, signature] = parts;
+      const parts = token.split('.');
+      if (parts.length !== 2) return null;
+      const [payload, signature] = parts;
       const secret = process.env.AUTH_SECRET || 'dev-auth-secret';
-      const expectedSignature = createHmac('sha256', secret)
-        .update(`${userId}.${email}.${issuedAt}`)
-        .digest('hex');
+      const expectedSignature = createHmac('sha256', secret).update(payload).digest('hex');
       if (signature !== expectedSignature) return null;
 
-      const user = await this._prisma.user.findUnique({ where: { id: userId } });
-      if (!user || user.email !== email) return null;
+      const decoded = Buffer.from(payload, 'base64url').toString('utf8');
+      const parsed = JSON.parse(decoded) as { userId?: string; email?: string; iat?: number };
+      if (!parsed.userId || !parsed.email) return null;
+
+      const user = await this._prisma.user.findUnique({ where: { id: parsed.userId } });
+      if (!user || user.email !== parsed.email) return null;
       return { id: user.id, email: user.email };
     } catch {
       return null;
