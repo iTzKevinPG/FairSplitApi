@@ -84,8 +84,8 @@ export class CreateInvoiceUseCase {
       participantIds.map((id) => this._participantRepository.findById(event.id, id)),
     );
     const missing = participants
-      .map((p, idx) => (p ? null : participantIds[idx]))
-      .filter(Boolean) as string[];
+      .map((p, idx): string | null => (p ? null : participantIds[idx]))
+      .filter((value): value is string => Boolean(value));
     if (missing.length > 0) {
       throw new BadRequestException({
         code: 'VALIDATION_ERROR',
@@ -187,7 +187,7 @@ export class CreateInvoiceUseCase {
           message: `Sum of consumptions (${totalConsumption.toFixed(
             2,
           )}) does not match total (${totalAmount.toFixed(2)})`,
-          fieldErrors: { consumptions: 'Consumptions must match total within ±0.01' },
+          fieldErrors: { consumptions: 'Consumptions must match total within +/-0.01' },
         });
       }
       // Adjust last participant to match total exactly
