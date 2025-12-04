@@ -5,6 +5,7 @@ import { EventModule } from './api/event/event.module';
 import { ParticipantModule } from './api/participant/participant.module';
 import { InvoiceModule } from './api/invoice/invoice.module';
 import { SettlementModule } from './api/settlement/settlement.module';
+import { AuthModule } from './api/auth/auth.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { SettlementModule } from './api/settlement/settlement.module';
         limit: 100,
       },
     ]),
+    AuthModule,
     EventModule,
     ParticipantModule,
     InvoiceModule,
