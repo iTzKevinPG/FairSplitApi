@@ -5,8 +5,8 @@ import { EventRepository } from '../ports/event-repository';
 export class GetEventUseCase {
   constructor(@Inject('EventRepository') private readonly _eventRepository: EventRepository) {}
 
-  async execute(id: string) {
-    const event = await this._eventRepository.findById(id);
+  async execute(id: string, userId: string) {
+    const event = await this._eventRepository.findByIdForUser(id, userId);
     if (!event) {
       throw new NotFoundException({
         code: 'EVENT_NOT_FOUND',

@@ -16,6 +16,7 @@ type CreateInvoiceInput = {
   consumptions?: Record<string, number>;
   tipAmount?: number;
   birthdayPersonId?: string;
+  userId: string;
 };
 
 const TOLERANCE = 0.01;
@@ -62,7 +63,7 @@ export class CreateInvoiceUseCase {
       });
     }
 
-    const event = await this._eventRepository.findById(input.eventId);
+    const event = await this._eventRepository.findByIdForUser(input.eventId, input.userId);
     if (!event) {
       throw new NotFoundException({ code: 'EVENT_NOT_FOUND', message: 'Event not found' });
     }

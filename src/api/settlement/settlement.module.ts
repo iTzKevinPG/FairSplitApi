@@ -8,15 +8,18 @@ import { PrismaEventRepository } from '../../infra/repositories/prisma-event.rep
 import { PrismaInvoiceRepository } from '../../infra/repositories/prisma-invoice.repository';
 import { PrismaParticipantRepository } from '../../infra/repositories/prisma-participant.repository';
 import { SettlementController } from './settlement.controller';
+import { AuthModule } from '../auth/auth.module';
+import { AuthGuard } from '../../shared/guards/auth.guard';
 
 @Module({
-  imports: [PrismaModule],
+  imports: [PrismaModule, AuthModule],
   controllers: [SettlementController],
   providers: [
     GetEventFullSummaryUseCase,
     GetEventSummaryUseCase,
     GetEventTransfersUseCase,
     ListInvoicesUseCase,
+    AuthGuard,
     {
       provide: 'InvoiceRepository',
       useClass: PrismaInvoiceRepository,

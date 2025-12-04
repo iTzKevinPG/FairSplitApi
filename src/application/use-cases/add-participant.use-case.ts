@@ -7,6 +7,7 @@ import { Person } from '../../domain/person/person';
 type AddParticipantInput = {
   eventId: string;
   name: string;
+  userId: string;
 };
 
 @Injectable()
@@ -30,7 +31,7 @@ export class AddParticipantUseCase {
       });
     }
 
-    const event = await this._eventRepository.findById(input.eventId);
+    const event = await this._eventRepository.findByIdForUser(input.eventId, input.userId);
     if (!event) {
       throw new NotFoundException({ code: 'EVENT_NOT_FOUND', message: 'Event not found' });
     }

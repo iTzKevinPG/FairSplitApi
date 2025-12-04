@@ -7,8 +7,8 @@ export class GetEventTransfersUseCase {
     @Inject(GetEventSummaryUseCase) private readonly _getEventSummary: GetEventSummaryUseCase,
   ) {}
 
-  async execute(eventId: string) {
-    const summary = await this._getEventSummary.execute(eventId).catch((err) => {
+  async execute(eventId: string, userId: string) {
+    const summary = await this._getEventSummary.execute(eventId, userId).catch((err) => {
       if (err instanceof NotFoundException) throw err;
       throw err;
     });

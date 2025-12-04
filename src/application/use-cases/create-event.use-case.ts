@@ -4,6 +4,7 @@ import { EventRepository } from '../ports/event-repository';
 type CreateEventInput = {
   name: string;
   currency: string;
+  userId: string;
 };
 
 @Injectable()
@@ -14,6 +15,7 @@ export class CreateEventUseCase {
     return this._eventRepository.create({
       name: input.name,
       currency: input.currency,
+      userId: input.userId,
     });
   }
 }

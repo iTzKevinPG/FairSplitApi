@@ -5,7 +5,7 @@ import { EventRepository } from '../ports/event-repository';
 export class ListEventsUseCase {
   constructor(@Inject('EventRepository') private readonly _eventRepository: EventRepository) {}
 
-  async execute() {
-    return this._eventRepository.findAll();
+  async execute(userId: string) {
+    return this._eventRepository.findAllByUser(userId);
   }
 }

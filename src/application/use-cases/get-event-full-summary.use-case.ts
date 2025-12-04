@@ -27,17 +27,17 @@ export class GetEventFullSummaryUseCase {
     private readonly _getTransfers: GetEventTransfersUseCase,
   ) {}
 
-  async execute(eventId: string): Promise<FullSummaryPayload> {
-    const event = await this._eventRepository.findById(eventId);
+  async execute(eventId: string, userId: string): Promise<FullSummaryPayload> {
+    const event = await this._eventRepository.findByIdForUser(eventId, userId);
     if (!event) {
       throw new NotFoundException({ code: 'EVENT_NOT_FOUND', message: 'Event not found' });
     }
 
     const [participants, invoices, balances, transfers] = await Promise.all([
       this._participantRepository.findByEvent(event.id),
-      this._listInvoices.execute(event.id),
-      this._getSummary.execute(event.id),
-      this._getTransfers.execute(event.id),
+      this._listInvoices.execute(event.id, userId),
+      this._getSummary.execute(event.id, userId),
+      this._getTransfers.execute(event.id, userId),
     ]);
 
     return {

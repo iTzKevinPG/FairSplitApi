@@ -7,15 +7,18 @@ import { PrismaModule } from '../../infra/prisma/prisma.module';
 import { PrismaEventRepository } from '../../infra/repositories/prisma-event.repository';
 import { PrismaParticipantRepository } from '../../infra/repositories/prisma-participant.repository';
 import { ParticipantController } from './participant.controller';
+import { AuthModule } from '../auth/auth.module';
+import { AuthGuard } from '../../shared/guards/auth.guard';
 
 @Module({
-  imports: [PrismaModule],
+  imports: [PrismaModule, AuthModule],
   controllers: [ParticipantController],
   providers: [
     AddParticipantUseCase,
     ListParticipantsUseCase,
     UpdateParticipantUseCase,
     RemoveParticipantUseCase,
+    AuthGuard,
     {
       provide: 'ParticipantRepository',
       useClass: PrismaParticipantRepository,

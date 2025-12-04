@@ -9,8 +9,8 @@ export class ListParticipantsUseCase {
     @Inject('EventRepository') private readonly _eventRepository: EventRepository,
   ) {}
 
-  async execute(eventId: string) {
-    const event = await this._eventRepository.findById(eventId);
+  async execute(eventId: string, userId: string) {
+    const event = await this._eventRepository.findByIdForUser(eventId, userId);
     if (!event) {
       throw new NotFoundException({ code: 'EVENT_NOT_FOUND', message: 'Event not found' });
     }

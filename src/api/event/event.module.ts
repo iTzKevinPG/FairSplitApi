@@ -5,14 +5,17 @@ import { ListEventsUseCase } from '../../application/use-cases/list-events.use-c
 import { PrismaModule } from '../../infra/prisma/prisma.module';
 import { PrismaEventRepository } from '../../infra/repositories/prisma-event.repository';
 import { EventController } from './event.controller';
+import { AuthModule } from '../auth/auth.module';
+import { AuthGuard } from '../../shared/guards/auth.guard';
 
 @Module({
-  imports: [PrismaModule],
+  imports: [PrismaModule, AuthModule],
   controllers: [EventController],
   providers: [
     CreateEventUseCase,
     ListEventsUseCase,
     GetEventUseCase,
+    AuthGuard,
     {
       provide: 'EventRepository',
       useClass: PrismaEventRepository,

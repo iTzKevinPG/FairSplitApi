@@ -7,7 +7,7 @@ Backend NestJS + TypeScript alineado con la arquitectura limpia (API → applica
 - Node.js 20+
 - npm
 - (Local) Docker + Docker Compose para la base de datos
-- Variables de entorno: ver `.env.example` y crea tu `.env` con al menos `DATABASE_URL`, `PORT`, `CORS_ALLOWED_ORIGINS` (opcional)
+- Variables de entorno: ver `.env.example` y crea tu `.env` con al menos `DATABASE_URL`, `PORT`, `CORS_ALLOWED_ORIGINS` (opcional), `AUTH_SECRET` (para firmar tokens en dev)
 
 ## Cómo levantar en local
 
@@ -63,6 +63,9 @@ Credenciales por defecto: user `billsplitter`, pass `billsplitter`, db `billspli
 - `GET /events/:eventId/summary` — saldos
 - `GET /events/:eventId/transfers` — transferencias sugeridas
 - `GET /events/:eventId/full-summary` — “bento” consolidado
+- Auth (beta, login sin password):
+  - `POST /auth/request-code` — envía un código a un email (placeholder: se loguea en consola).
+  - `POST /auth/verify-code` — verifica código y devuelve `{ token, user }`, creando el perfil si no existe.
 
 ## Contrato de errores
 

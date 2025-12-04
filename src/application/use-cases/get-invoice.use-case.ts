@@ -34,8 +34,8 @@ export class GetInvoiceUseCase {
     @Inject('ParticipantRepository') private readonly _participantRepository: ParticipantRepository,
   ) {}
 
-  async execute(eventId: string, invoiceId: string): Promise<InvoiceDetail> {
-    const event = await this._eventRepository.findById(eventId);
+  async execute(eventId: string, invoiceId: string, userId: string): Promise<InvoiceDetail> {
+    const event = await this._eventRepository.findByIdForUser(eventId, userId);
     if (!event) {
       throw new NotFoundException({ code: 'EVENT_NOT_FOUND', message: 'Event not found' });
     }

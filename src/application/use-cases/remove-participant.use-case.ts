@@ -5,6 +5,7 @@ import { ParticipantRepository } from '../ports/participant-repository';
 type RemoveParticipantInput = {
   eventId: string;
   participantId: string;
+  userId: string;
 };
 
 @Injectable()
@@ -15,7 +16,7 @@ export class RemoveParticipantUseCase {
   ) {}
 
   async execute(input: RemoveParticipantInput): Promise<void> {
-    const event = await this._eventRepository.findById(input.eventId);
+    const event = await this._eventRepository.findByIdForUser(input.eventId, input.userId);
     if (!event) {
       throw new NotFoundException({ code: 'EVENT_NOT_FOUND', message: 'Event not found' });
     }

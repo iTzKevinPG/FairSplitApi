@@ -7,10 +7,20 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id         String    @id @default(uuid())
+  email      String    @unique
+  createdAt  DateTime  @default(now())
+  verifiedAt DateTime?
+  events     Event[]
+}
+
 model Event {
   id            String    @id @default(uuid())
   name          String
   currency      String
+  owner         User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  userId        String?
   participants  Person[]
   invoices      Invoice[]
   createdAt     DateTime  @default(now())
