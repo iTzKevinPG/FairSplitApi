@@ -42,7 +42,8 @@ export class AuthService {
 
   private signToken(userId: string, email: string): string {
     const secret = process.env.AUTH_SECRET || 'dev-auth-secret';
-    const payloadObj = { userId, email, iat: Date.now() };
+    const now = Date.now();
+    const payloadObj = { userId, email, iat: now, exp: now + 60 * 60 * 1000 };
     const payload = Buffer.from(JSON.stringify(payloadObj)).toString('base64url');
     const signature = createHmac('sha256', secret).update(payload).digest('hex');
     return `${payload}.${signature}`;
@@ -58,8 +59,14 @@ export class AuthService {
       if (signature !== expectedSignature) return null;
 
       const decoded = Buffer.from(payload, 'base64url').toString('utf8');
-      const parsed = JSON.parse(decoded) as { userId?: string; email?: string; iat?: number };
+      const parsed = JSON.parse(decoded) as {
+        userId?: string;
+        email?: string;
+        iat?: number;
+        exp?: number;
+      };
       if (!parsed.userId || !parsed.email) return null;
+      if (typeof parsed.exp === 'number' && Date.now() > parsed.exp) return null;
 
       const user = await this._prisma.user.findUnique({ where: { id: parsed.userId } });
       if (!user || user.email !== parsed.email) return null;

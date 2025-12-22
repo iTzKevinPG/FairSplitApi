@@ -1,4 +1,4 @@
-# FairSplit API
+﻿# FairSplit API
 
 Backend NestJS + TypeScript alineado con la arquitectura limpia (API → application → domain → infra).
 
@@ -28,16 +28,16 @@ Credenciales por defecto: user `billsplitter`, pass `billsplitter`, db `billspli
 
 ## Scripts útiles
 
-- `npm run start:dev` — Nest en modo watch.
-- `npm run build` — compila a `dist/`.
-- `npm run lint` — lint de `src/` y `test/`.
-- `npm run prisma:generate` — regenera el cliente Prisma tras cambios en el schema.
-- `npm run prisma:migrate -- --name <nombre>` — crea y aplica una nueva migración en dev.
-- `npm run prisma:migrate` — aplica las migraciones pendientes en dev.
-- `npm run prisma:migrate:deploy` — aplica migraciones existentes (staging/prod/CI).
-- `npm run prisma:migrate:create` — genera archivos de migración sin aplicarlos (útil para revisar diff).
-- `npm run prisma:format` — formatea `schema.prisma`.
-- `npm run db:up` / `npm run db:logs` — arranca la base en Docker y muestra logs.
+- `npm run start:dev` → Nest en modo watch.
+- `npm run build` → compila a `dist/`.
+- `npm run lint` → lint de `src/` y `test/`.
+- `npm run prisma:generate` → regenera el cliente Prisma tras cambios en el schema.
+- `npm run prisma:migrate -- --name <nombre>` → crea y aplica una nueva migración en dev.
+- `npm run prisma:migrate` → aplica las migraciones pendientes en dev.
+- `npm run prisma:migrate:deploy` → aplica migraciones existentes (staging/prod/CI).
+- `npm run prisma:migrate:create` → genera archivos de migración sin aplicarlos (útil para revisar diff).
+- `npm run prisma:format` → formatea `schema.prisma`.
+- `npm run db:up` / `npm run db:logs` → arranca la base en Docker y muestra logs.
 
 ## Estructura
 
@@ -48,7 +48,7 @@ Credenciales por defecto: user `billsplitter`, pass `billsplitter`, db `billspli
 ### Nota sobre `prisma/` en la raíz
 
 - Prisma CLI busca por defecto `prisma/schema.prisma` en la raíz; mantenerlo ahí evita banderas extra en scripts y simplifica CI/CD.
-- Aunque conceptualmente pertenece a infraestructura, lo tratamos como tooling externo al codigo de negocio; si algún día se mueve a `infra/prisma`, habría que ajustar los scripts (`"prisma": { "schema": "infra/prisma/schema.prisma" }`) y pipelines.
+- Aunque conceptualmente pertenece a infraestructura, lo tratamos como tooling externo al código de negocio; si algún día se mueve a `infra/prisma`, habría que ajustar los scripts (`"prisma": { "schema": "infra/prisma/schema.prisma" }`) y pipelines.
 
 ## Seguridad básica
 
@@ -61,12 +61,12 @@ Credenciales por defecto: user `billsplitter`, pass `billsplitter`, db `billspli
 - `POST /events`, `GET /events`, `GET /events/:id`
 - `POST /events/:eventId/participants`, `GET /events/:eventId/participants`, `PATCH /events/:eventId/participants/:participantId`, `DELETE /events/:eventId/participants/:participantId`
 - `POST /events/:eventId/invoices`, `GET /events/:eventId/invoices`, `GET /events/:eventId/invoices/:invoiceId`
-- `GET /events/:eventId/summary` — saldos
-- `GET /events/:eventId/transfers` — transferencias sugeridas
-- `GET /events/:eventId/full-summary` — “bento” consolidado
+- `GET /events/:eventId/summary` → saldos
+- `GET /events/:eventId/transfers` → transferencias sugeridas
+- `GET /events/:eventId/full-summary` → evento consolidado
 - Auth (beta, login sin password):
-  - `POST /auth/request-code` — envía un código a un email (placeholder: se loguea en consola; si `LOGIN_ACCESS_CODE` está definido, se usa ese código fijo).
-  - `POST /auth/verify-code` — verifica código y devuelve `{ token, user }`, creando el perfil si no existe.
+  - `POST /auth/request-code` → envía un código a un email (placeholder: se loguea en consola; si `LOGIN_ACCESS_CODE` está definido, se usa ese código fijo).
+  - `POST /auth/verify-code` → verifica código y devuelve `{ token, user }`, creando el perfil si no existe.
 
 ## Contrato de errores
 
@@ -86,4 +86,4 @@ Todas las excepciones pasan por un filtro global y usan un formato uniforme:
 
 Códigos frecuentes: `VALIDATION_ERROR`/`BAD_REQUEST` (400), `EVENT_NOT_FOUND`/`PARTICIPANT_NOT_FOUND`/`INVOICE_NOT_FOUND` (404), `PARTICIPANT_HAS_INVOICES` (409), `CONFLICT` (409), `INTERNAL_SERVER_ERROR` (500).
 
-Icon By - <a href="https://www.flaticon.com/free-icons/bitcoin-encryption" title="bitcoin-encryption icons">Bitcoin-encryption icons created by juicy_fish - Flaticon</a> 
+Icon By - <a href="https://www.flaticon.com/free-icons/bitcoin-encryption" title="bitcoin-encryption icons">Bitcoin-encryption icons created by juicy_fish - Flaticon</a>

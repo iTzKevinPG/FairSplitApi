@@ -3,18 +3,14 @@ import {
   IsArray,
   IsIn,
   IsNotEmpty,
+  IsNotEmptyObject,
   IsNumber,
+  IsObject,
   IsOptional,
   IsString,
   IsUUID,
   ValidateIf,
-  ValidateNested,
 } from 'class-validator';
-import { Type } from 'class-transformer';
-
-class ConsumptionsDto {
-  [key: string]: number;
-}
 
 export class CreateInvoiceDto {
   @IsString()
@@ -39,9 +35,14 @@ export class CreateInvoiceDto {
   divisionMethod!: 'equal' | 'consumption';
 
   @ValidateIf((o) => o.divisionMethod === 'consumption')
-  @ValidateNested()
-  @Type(() => ConsumptionsDto)
-  @IsOptional()
+  @IsObject()
+  @IsNotEmptyObject()
+  @Transform(({ value }) => {
+    if (!value || typeof value !== 'object') return value;
+    return Object.fromEntries(
+      Object.entries(value).map(([key, val]) => [key, Number(val)]),
+    );
+  })
   consumptions?: Record<string, number>;
 
   @IsOptional()
