@@ -59,6 +59,62 @@ export class PrismaInvoiceRepository implements InvoiceRepository {
     );
   }
 
+  async update(invoice: Invoice): Promise<Invoice> {
+    const updated = await this._prisma.$transaction(async (tx) => {
+      await tx.participation.deleteMany({ where: { invoiceId: invoice.id } });
+      const updatedInvoice = await tx.invoice.update({
+        where: { id: invoice.id },
+        data: {
+          description: invoice.description,
+          amount: invoice.amount,
+          divisionMethod: invoice.divisionMethod,
+          tipAmount: invoice.tipAmount,
+          birthdayPersonId: invoice.birthdayPersonId,
+          consumptions: invoice.consumptions ?? undefined,
+          eventId: invoice.eventId,
+          payerId: invoice.payerId,
+          participations: {
+            createMany: {
+              data: invoice.participations.map((p) => ({
+                personId: p.personId,
+                baseAmount: p.baseAmount,
+                tipShare: p.tipShare,
+                finalAmount: p.finalAmount,
+              })),
+            },
+          },
+        },
+      });
+
+      const participations = await tx.participation.findMany({
+        where: { invoiceId: updatedInvoice.id },
+      });
+
+      return { updatedInvoice, participations };
+    });
+
+    return new Invoice(
+      updated.updatedInvoice.id,
+      updated.updatedInvoice.eventId,
+      updated.updatedInvoice.payerId,
+      updated.updatedInvoice.description,
+      Number(updated.updatedInvoice.amount),
+      updated.updatedInvoice.divisionMethod as 'equal' | 'consumption',
+      updated.participations.map(
+        (p) =>
+          new Participation(
+            p.personId,
+            Number(p.baseAmount),
+            Number(p.tipShare),
+            Number(p.finalAmount),
+          ),
+      ),
+      updated.updatedInvoice.tipAmount ? Number(updated.updatedInvoice.tipAmount) : 0,
+      updated.updatedInvoice.birthdayPersonId ?? undefined,
+      (updated.updatedInvoice as { consumptions?: Record<string, number> }).consumptions,
+    );
+  }
+
   async findByEvent(eventId: string): Promise<Invoice[]> {
     const invoices = await this._prisma.invoice.findMany({
       where: { eventId },
