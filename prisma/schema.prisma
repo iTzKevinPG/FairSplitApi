@@ -23,6 +23,7 @@ model Event {
   userId        String?
   participants  Person[]
   invoices      Invoice[]
+  transferStatuses TransferStatus[]
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 }
@@ -34,6 +35,8 @@ model Person {
   eventId         String
   invoicesPaid    Invoice[]       @relation("InvoicePayer")
   participations  Participation[]
+  outgoingTransfers TransferStatus[] @relation("TransferFrom")
+  incomingTransfers TransferStatus[] @relation("TransferTo")
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
 }
@@ -67,4 +70,21 @@ model Participation {
 
   @@index([invoiceId])
   @@index([personId])
+}
+
+model TransferStatus {
+  id                String   @id @default(uuid())
+  event             Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  eventId           String
+  fromParticipant   Person   @relation("TransferFrom", fields: [fromParticipantId], references: [id], onDelete: Cascade)
+  fromParticipantId String
+  toParticipant     Person   @relation("TransferTo", fields: [toParticipantId], references: [id], onDelete: Cascade)
+  toParticipantId   String
+  isSettled         Boolean  @default(false)
+  settledAt         DateTime?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@unique([eventId, fromParticipantId, toParticipantId])
+  @@index([eventId])
 }
