@@ -39,9 +39,7 @@ export class UpdateInvoiceDto {
   @IsNotEmptyObject()
   @Transform(({ value }) => {
     if (!value || typeof value !== 'object') return value;
-    return Object.fromEntries(
-      Object.entries(value).map(([key, val]) => [key, Number(val)]),
-    );
+    return Object.fromEntries(Object.entries(value).map(([key, val]) => [key, Number(val)]));
   })
   consumptions?: Record<string, number>;
 

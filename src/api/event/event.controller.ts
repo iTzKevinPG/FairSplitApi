@@ -1,4 +1,13 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { CreateEventUseCase } from '../../application/use-cases/create-event.use-case';
 import { GetEventUseCase } from '../../application/use-cases/get-event.use-case';
 import { ListEventsUseCase } from '../../application/use-cases/list-events.use-case';
@@ -29,10 +38,7 @@ export class EventController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  async create(
-    @Body() body: CreateEventDto,
-    @CurrentUser() user: { id: string },
-  ): Promise<Event> {
+  async create(@Body() body: CreateEventDto, @CurrentUser() user: { id: string }): Promise<Event> {
     return this._createEvent.execute({
       name: body.name.trim(),
       currency: body.currency.trim().toUpperCase(),

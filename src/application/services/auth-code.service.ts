@@ -16,7 +16,6 @@ export class AuthCodeService {
   async sendCode(email: string): Promise<void> {
     // If a fixed code is configured, we just log a hint and skip per-email generation.
     if (this.fixedCode) {
-      // eslint-disable-next-line no-console
       console.info(`Login code for ${email}: ${this.fixedCode} (fixed code)`);
       return;
     }
@@ -39,7 +38,7 @@ export class AuthCodeService {
 
     // Placeholder for real email delivery
     // In production, integrate with an email provider here.
-    // eslint-disable-next-line no-console
+
     console.info(`Login code for ${email}: ${code}`);
   }
 

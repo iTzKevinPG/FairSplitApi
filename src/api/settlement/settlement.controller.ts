@@ -35,10 +35,7 @@ export class SettlementController {
   }
 
   @Get('transfer-status')
-  async getTransferStatus(
-    @Param('eventId') eventId: string,
-    @CurrentUser() user: { id: string },
-  ) {
+  async getTransferStatus(@Param('eventId') eventId: string, @CurrentUser() user: { id: string }) {
     return this._getTransferStatus.execute(eventId, user.id);
   }
 
@@ -58,10 +55,7 @@ export class SettlementController {
   }
 
   @Get('full-summary')
-  async getFullSummary(
-    @Param('eventId') eventId: string,
-    @CurrentUser() user: { id: string },
-  ) {
+  async getFullSummary(@Param('eventId') eventId: string, @CurrentUser() user: { id: string }) {
     return this._getEventFullSummary.execute(eventId, user.id);
   }
 }
