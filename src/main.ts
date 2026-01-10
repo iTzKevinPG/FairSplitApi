@@ -6,6 +6,16 @@ import helmet from 'helmet';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './shared/filters/http-exception.filter';
 
+if (process.env.NODE_ENV !== 'production') {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    require('dotenv').config();
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.warn('dotenv not available; skipping .env load');
+  }
+}
+
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule);
   app.use(helmet());

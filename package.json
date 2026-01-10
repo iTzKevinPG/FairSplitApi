@@ -44,6 +44,7 @@
     "eslint": "^9.39.1",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.4",
+    "dotenv": "^16.6.1",
     "prettier": "^3.7.4",
     "prisma": "^5.22.0",
     "ts-node": "^10.9.2",
