@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { EventRepository } from '../../application/ports/event-repository';
+import type { EventSummaryDTO } from '../../application/dto/EventSummaryDTO';
 import { Event } from '../../domain/event/event';
 import { EventId } from '../../domain/event/event-id';
 import { PrismaService } from '../prisma/prisma.service';
@@ -24,11 +25,28 @@ export class PrismaEventRepository implements EventRepository {
     return event ? new Event(event.id, event.name, event.currency, event.createdAt) : null;
   }
 
-  async findAllByUser(userId: string): Promise<Event[]> {
+  async findAllByUser(userId: string): Promise<EventSummaryDTO[]> {
     const events = await this._prisma.event.findMany({
       where: { userId },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { updatedAt: 'desc' },
+      select: {
+        id: true,
+        name: true,
+        currency: true,
+        _count: {
+          select: {
+            participants: true,
+            invoices: true,
+          },
+        },
+      },
     });
-    return events.map((event) => new Event(event.id, event.name, event.currency, event.createdAt));
+    return events.map((event) => ({
+      id: event.id,
+      name: event.name,
+      currency: event.currency,
+      peopleCount: event._count.participants,
+      invoiceCount: event._count.invoices,
+    }));
   }
 }

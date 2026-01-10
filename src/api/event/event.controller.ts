@@ -2,6 +2,7 @@ import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, UseGuards } f
 import { CreateEventUseCase } from '../../application/use-cases/create-event.use-case';
 import { GetEventUseCase } from '../../application/use-cases/get-event.use-case';
 import { ListEventsUseCase } from '../../application/use-cases/list-events.use-case';
+import type { EventSummaryDTO } from '../../application/dto/EventSummaryDTO';
 import { Event } from '../../domain/event/event';
 import { CreateEventDto } from './dto/create-event.dto';
 import { AuthGuard } from '../../shared/guards/auth.guard';
@@ -17,7 +18,7 @@ export class EventController {
   ) {}
 
   @Get()
-  async list(@CurrentUser() user: { id: string }): Promise<Event[]> {
+  async list(@CurrentUser() user: { id: string }): Promise<EventSummaryDTO[]> {
     return this._listEvents.execute(user.id);
   }
 
