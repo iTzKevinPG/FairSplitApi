@@ -178,4 +178,8 @@ export class PrismaInvoiceRepository implements InvoiceRepository {
       (inv as { consumptions?: Record<string, number> }).consumptions,
     );
   }
+
+  async remove(id: string): Promise<void> {
+    await this._prisma.invoice.delete({ where: { id } });
+  }
 }

@@ -5,4 +5,5 @@ export interface InvoiceRepository {
   update(invoice: Invoice): Promise<Invoice>;
   findByEvent(eventId: string): Promise<Invoice[]>;
   findById(id: string): Promise<Invoice | null>;
+  remove(id: string): Promise<void>;
 }

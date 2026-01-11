@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   HttpStatus,
@@ -12,6 +13,7 @@ import {
 import { CreateInvoiceUseCase } from '../../application/use-cases/create-invoice.use-case';
 import { GetInvoiceUseCase } from '../../application/use-cases/get-invoice.use-case';
 import { ListInvoicesUseCase } from '../../application/use-cases/list-invoices.use-case';
+import { RemoveInvoiceUseCase } from '../../application/use-cases/remove-invoice.use-case';
 import { UpdateInvoiceUseCase } from '../../application/use-cases/update-invoice.use-case';
 import { Invoice } from '../../domain/invoice/invoice';
 import { CreateInvoiceDto } from './dto/create-invoice.dto';
@@ -26,6 +28,7 @@ export class InvoiceController {
     private readonly _createInvoice: CreateInvoiceUseCase,
     private readonly _listInvoices: ListInvoicesUseCase,
     private readonly _getInvoice: GetInvoiceUseCase,
+    private readonly _removeInvoice: RemoveInvoiceUseCase,
     private readonly _updateInvoice: UpdateInvoiceUseCase,
   ) {}
 
@@ -84,5 +87,15 @@ export class InvoiceController {
       birthdayPersonId: body.birthdayPersonId,
       userId: user.id,
     });
+  }
+
+  @Delete(':invoiceId')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async remove(
+    @Param('eventId') eventId: string,
+    @Param('invoiceId') invoiceId: string,
+    @CurrentUser() user: { id: string },
+  ): Promise<void> {
+    await this._removeInvoice.execute(eventId, invoiceId, user.id);
   }
 }

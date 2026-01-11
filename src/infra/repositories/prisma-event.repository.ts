@@ -20,6 +20,11 @@ export class PrismaEventRepository implements EventRepository {
     return new Event(created.id, created.name, created.currency, created.createdAt);
   }
 
+  async findById(id: EventId): Promise<Event | null> {
+    const event = await this._prisma.event.findUnique({ where: { id } });
+    return event ? new Event(event.id, event.name, event.currency, event.createdAt) : null;
+  }
+
   async findByIdForUser(id: EventId, userId: string): Promise<Event | null> {
     const event = await this._prisma.event.findFirst({ where: { id, userId } });
     return event ? new Event(event.id, event.name, event.currency, event.createdAt) : null;
@@ -48,5 +53,12 @@ export class PrismaEventRepository implements EventRepository {
       peopleCount: event._count.participants,
       invoiceCount: event._count.invoices,
     }));
+  }
+
+  async deleteForUser(id: EventId, userId: string): Promise<boolean> {
+    const result = await this._prisma.event.deleteMany({
+      where: { id, userId },
+    });
+    return result.count > 0;
   }
 }

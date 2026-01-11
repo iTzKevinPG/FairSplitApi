@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   HttpStatus,
@@ -11,6 +12,7 @@ import {
 import { CreateEventUseCase } from '../../application/use-cases/create-event.use-case';
 import { GetEventUseCase } from '../../application/use-cases/get-event.use-case';
 import { ListEventsUseCase } from '../../application/use-cases/list-events.use-case';
+import { RemoveEventUseCase } from '../../application/use-cases/remove-event.use-case';
 import type { EventSummaryDTO } from '../../application/dto/EventSummaryDTO';
 import { Event } from '../../domain/event/event';
 import { CreateEventDto } from './dto/create-event.dto';
@@ -24,6 +26,7 @@ export class EventController {
     private readonly _createEvent: CreateEventUseCase,
     private readonly _listEvents: ListEventsUseCase,
     private readonly _getEvent: GetEventUseCase,
+    private readonly _removeEvent: RemoveEventUseCase,
   ) {}
 
   @Get()
@@ -44,5 +47,11 @@ export class EventController {
       currency: body.currency.trim().toUpperCase(),
       userId: user.id,
     });
+  }
+
+  @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async remove(@Param('id') id: string, @CurrentUser() user: { id: string }): Promise<void> {
+    await this._removeEvent.execute(id, user.id);
   }
 }

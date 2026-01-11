@@ -7,6 +7,7 @@ import { PrismaEventRepository } from '../../infra/repositories/prisma-event.rep
 import { EventController } from './event.controller';
 import { AuthModule } from '../auth/auth.module';
 import { AuthGuard } from '../../shared/guards/auth.guard';
+import { RemoveEventUseCase } from '../../application/use-cases/remove-event.use-case';
 
 @Module({
   imports: [PrismaModule, AuthModule],
@@ -15,6 +16,7 @@ import { AuthGuard } from '../../shared/guards/auth.guard';
     CreateEventUseCase,
     ListEventsUseCase,
     GetEventUseCase,
+    RemoveEventUseCase,
     AuthGuard,
     {
       provide: 'EventRepository',
