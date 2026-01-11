@@ -56,9 +56,24 @@ export class PrismaEventRepository implements EventRepository {
   }
 
   async deleteForUser(id: EventId, userId: string): Promise<boolean> {
-    const result = await this._prisma.event.deleteMany({
-      where: { id, userId },
+    const result = await this._prisma.$transaction(async (tx) => {
+      const event = await tx.event.findFirst({ where: { id, userId } });
+      if (!event) return false;
+
+      await tx.participation.deleteMany({
+        where: {
+          invoice: {
+            eventId: id,
+          },
+        },
+      });
+      await tx.invoice.deleteMany({ where: { eventId: id } });
+      await tx.person.deleteMany({ where: { eventId: id } });
+      await tx.transferStatus.deleteMany({ where: { eventId: id } });
+      await tx.event.delete({ where: { id } });
+      return true;
     });
-    return result.count > 0;
+
+    return result;
   }
 }
