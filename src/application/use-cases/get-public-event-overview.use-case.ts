@@ -2,6 +2,7 @@ import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { EventRepository } from '../ports/event-repository';
 import { ParticipantRepository } from '../ports/participant-repository';
 import { InvoiceRepository } from '../ports/invoice-repository';
+import { TransferStatusRepository } from '../ports/transfer-status-repository';
 import { Participation } from '../../domain/invoice/participation';
 import type { DivisionMethod } from '../../domain/invoice/invoice';
 
@@ -54,6 +55,13 @@ type TransferItem = {
   amount: number;
 };
 
+type TransferStatusItem = {
+  fromParticipantId: string;
+  toParticipantId: string;
+  isSettled: boolean;
+  settledAt?: string | null;
+};
+
 type PublicOverviewPayload = {
   event: {
     id: string;
@@ -64,6 +72,7 @@ type PublicOverviewPayload = {
   invoices: InvoiceDetail[];
   balances: SummaryItem[];
   transfers: TransferItem[];
+  transferStatuses: TransferStatusItem[];
 };
 
 @Injectable()
@@ -72,6 +81,8 @@ export class GetPublicEventOverviewUseCase {
     @Inject('EventRepository') private readonly _eventRepository: EventRepository,
     @Inject('ParticipantRepository') private readonly _participantRepository: ParticipantRepository,
     @Inject('InvoiceRepository') private readonly _invoiceRepository: InvoiceRepository,
+    @Inject('TransferStatusRepository')
+    private readonly _transferStatusRepository: TransferStatusRepository,
   ) {}
 
   async execute(eventId: string): Promise<PublicOverviewPayload> {
@@ -80,9 +91,10 @@ export class GetPublicEventOverviewUseCase {
       throw new NotFoundException({ code: 'EVENT_NOT_FOUND', message: 'Event not found' });
     }
 
-    const [participants, invoices] = await Promise.all([
+    const [participants, invoices, transferStatuses] = await Promise.all([
       this._participantRepository.findByEvent(event.id),
       this._invoiceRepository.findByEvent(event.id),
+      this._transferStatusRepository.findByEvent(event.id),
     ]);
 
     const participantNames = new Map(participants.map((p) => [p.id, p.name]));
@@ -122,6 +134,12 @@ export class GetPublicEventOverviewUseCase {
 
     const balances = this.buildSummary(participants, invoices);
     const transfers = this.buildTransfers(balances);
+    const transferStatusItems = transferStatuses.map((status) => ({
+      fromParticipantId: status.fromParticipantId,
+      toParticipantId: status.toParticipantId,
+      isSettled: status.isSettled,
+      settledAt: status.settledAt ? status.settledAt.toISOString() : null,
+    }));
 
     return {
       event: {
@@ -133,6 +151,7 @@ export class GetPublicEventOverviewUseCase {
       invoices: invoiceDetails,
       balances,
       transfers,
+      transferStatuses: transferStatusItems,
     };
   }
 
