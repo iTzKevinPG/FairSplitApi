@@ -13,6 +13,15 @@ type InvoiceParticipationDetail = {
   isBirthdayPerson: boolean;
 };
 
+type InvoiceItemDetail = {
+  id: string;
+  name: string;
+  unitPrice: number;
+  quantity: number;
+  total: number;
+  participantIds: string[];
+};
+
 type InvoiceDetail = {
   id: string;
   eventId: string;
@@ -24,6 +33,7 @@ type InvoiceDetail = {
   tipAmount?: number;
   birthdayPersonId?: string;
   participations: InvoiceParticipationDetail[];
+  items?: InvoiceItemDetail[];
 };
 
 @Injectable()
@@ -74,6 +84,15 @@ export class GetInvoiceUseCase {
       tipAmount: invoice.tipAmount,
       birthdayPersonId: invoice.birthdayPersonId,
       participations,
+      items:
+        invoice.items?.map((item) => ({
+          id: item.id,
+          name: item.name,
+          unitPrice: this.round2(item.unitPrice),
+          quantity: item.quantity,
+          total: this.round2(item.total),
+          participantIds: item.assignments.map((assignment) => assignment.personId),
+        })) ?? undefined,
     };
   }
 

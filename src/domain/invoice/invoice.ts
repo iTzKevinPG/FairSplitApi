@@ -2,6 +2,20 @@ import { Participation } from './participation';
 
 export type DivisionMethod = 'equal' | 'consumption';
 
+export type InvoiceItemAssignment = {
+  personId: string;
+  amount: number;
+};
+
+export type InvoiceItem = {
+  id: string;
+  name: string;
+  unitPrice: number;
+  quantity: number;
+  total: number;
+  assignments: InvoiceItemAssignment[];
+};
+
 export class Invoice {
   constructor(
     public readonly id: string,
@@ -14,5 +28,6 @@ export class Invoice {
     public readonly tipAmount: number,
     public readonly birthdayPersonId?: string,
     public readonly consumptions?: Record<string, number>,
+    public readonly items?: InvoiceItem[],
   ) {}
 }

@@ -35,6 +35,7 @@ model Person {
   eventId         String
   invoicesPaid    Invoice[]       @relation("InvoicePayer")
   participations  Participation[]
+  itemAssignments InvoiceItemAssignment[]
   outgoingTransfers TransferStatus[] @relation("TransferFrom")
   incomingTransfers TransferStatus[] @relation("TransferTo")
   createdAt       DateTime        @default(now())
@@ -49,6 +50,7 @@ model Invoice {
   tipAmount         Decimal?        @db.Decimal(10, 2)
   birthdayPersonId  String?
   consumptions      Json?
+  items             InvoiceItem[]
   event             Event           @relation(fields: [eventId], references: [id], onDelete: Cascade)
   eventId           String
   payer             Person          @relation("InvoicePayer", fields: [payerId], references: [id], onDelete: Restrict)
@@ -56,6 +58,33 @@ model Invoice {
   participations    Participation[]
   createdAt         DateTime        @default(now())
   updatedAt         DateTime        @updatedAt
+}
+
+model InvoiceItem {
+  id          String                 @id @default(uuid())
+  name        String
+  unitPrice   Decimal                @db.Decimal(10, 2)
+  quantity    Int
+  total       Decimal                @db.Decimal(10, 2)
+  invoice     Invoice                @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  invoiceId   String
+  assignments InvoiceItemAssignment[]
+  createdAt   DateTime               @default(now())
+  updatedAt   DateTime               @updatedAt
+
+  @@index([invoiceId])
+}
+
+model InvoiceItemAssignment {
+  id        String      @id @default(uuid())
+  item      InvoiceItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  itemId    String
+  person    Person      @relation(fields: [personId], references: [id], onDelete: Restrict)
+  personId  String
+  amount    Decimal     @db.Decimal(10, 2)
+
+  @@index([itemId])
+  @@index([personId])
 }
 
 model Participation {

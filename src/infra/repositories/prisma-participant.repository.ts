@@ -48,7 +48,7 @@ export class PrismaParticipantRepository implements ParticipantRepository {
   }
 
   async hasInvoices(eventId: string, personId: string): Promise<boolean> {
-    const [payerCount, participationCount] = await Promise.all([
+    const [payerCount, participationCount, itemAssignmentCount] = await Promise.all([
       this._prisma.invoice.count({
         where: {
           eventId,
@@ -61,7 +61,13 @@ export class PrismaParticipantRepository implements ParticipantRepository {
           invoice: { eventId },
         },
       }),
+      this._prisma.invoiceItemAssignment.count({
+        where: {
+          personId,
+          item: { invoice: { eventId } },
+        },
+      }),
     ]);
-    return payerCount > 0 || participationCount > 0;
+    return payerCount > 0 || participationCount > 0 || itemAssignmentCount > 0;
   }
 }

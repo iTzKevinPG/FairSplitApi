@@ -1,6 +1,7 @@
-import { Transform } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import {
   IsArray,
+  IsInt,
   IsIn,
   IsNotEmpty,
   IsNotEmptyObject,
@@ -9,8 +10,30 @@ import {
   IsOptional,
   IsString,
   IsUUID,
+  Min,
+  ValidateNested,
   ValidateIf,
 } from 'class-validator';
+
+class InvoiceItemDto {
+  @IsString()
+  @IsNotEmpty()
+  name!: string;
+
+  @IsNumber()
+  @Transform(({ value }) => Number(value))
+  @Min(0.01)
+  unitPrice!: number;
+
+  @IsInt()
+  @Transform(({ value }) => Number(value))
+  @Min(1)
+  quantity!: number;
+
+  @IsArray()
+  @IsUUID('4', { each: true })
+  participantIds!: string[];
+}
 
 export class UpdateInvoiceDto {
   @IsString()
@@ -42,6 +65,12 @@ export class UpdateInvoiceDto {
     return Object.fromEntries(Object.entries(value).map(([key, val]) => [key, Number(val)]));
   })
   consumptions?: Record<string, number>;
+
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => InvoiceItemDto)
+  items?: InvoiceItemDto[];
 
   @IsOptional()
   @Transform(({ value }) => (value === undefined ? undefined : Number(value)))

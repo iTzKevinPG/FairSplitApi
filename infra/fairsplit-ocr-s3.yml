@@ -1,0 +1,83 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: FairSplit S3 bucket + IAM user for uploads (signed URLs)
+
+Parameters:
+  BucketName:
+    Type: String
+    Description: "Unique S3 bucket name"
+  TtlDays:
+    Type: Number
+    Default: 2
+    MinValue: 1
+    MaxValue: 30
+    Description: "Days until objects expire (e.g., 1=24h, 2=48h)"
+
+Resources:
+  InvoiceBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref BucketName
+      LifecycleConfiguration:
+        Rules:
+          - Id: ExpireInvoiceScans
+            Status: Enabled
+            ExpirationInDays: !Ref TtlDays
+            AbortIncompleteMultipartUpload:
+              DaysAfterInitiation: 1
+
+  InvoiceBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref InvoiceBucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: DenyInsecureTransport
+            Effect: Deny
+            Principal: "*"
+            Action: "s3:*"
+            Resource:
+              - !Sub "arn:aws:s3:::${BucketName}"
+              - !Sub "arn:aws:s3:::${BucketName}/*"
+            Condition:
+              Bool:
+                "aws:SecureTransport": false
+
+  InvoiceUser:
+    Type: AWS::IAM::User
+    Properties:
+      UserName: !Sub "${BucketName}-invoice-uploader"
+
+  InvoiceUserPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Sub "${BucketName}-s3-policy"
+      Users:
+        - !Ref InvoiceUser
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: S3Access
+            Effect: Allow
+            Action:
+              - s3:PutObject
+              - s3:GetObject
+              - s3:DeleteObject
+              - s3:ListBucket
+              - s3:GetBucketLocation
+            Resource:
+              - !Sub "arn:aws:s3:::${BucketName}"
+              - !Sub "arn:aws:s3:::${BucketName}/*"
+
+  InvoiceAccessKey:
+    Type: AWS::IAM::AccessKey
+    Properties:
+      UserName: !Ref InvoiceUser
+
+Outputs:
+  S3BucketName:
+    Value: !Ref BucketName
+  IAMAccessKeyId:
+    Value: !Ref InvoiceAccessKey
+  IAMSecretAccessKey:
+    Value: !GetAtt InvoiceAccessKey.SecretAccessKey

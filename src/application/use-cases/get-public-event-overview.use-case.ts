@@ -14,6 +14,15 @@ type InvoiceParticipationDetail = {
   isBirthdayPerson: boolean;
 };
 
+type InvoiceItemDetail = {
+  id: string;
+  name: string;
+  unitPrice: number;
+  quantity: number;
+  total: number;
+  participantIds: string[];
+};
+
 type InvoiceDetail = {
   id: string;
   eventId: string;
@@ -25,6 +34,7 @@ type InvoiceDetail = {
   tipAmount?: number;
   birthdayPersonId?: string;
   participations: InvoiceParticipationDetail[];
+  items?: InvoiceItemDetail[];
 };
 
 type SummaryItem = {
@@ -86,6 +96,15 @@ export class GetPublicEventOverviewUseCase {
         tipShare: this.round2(p.tipShare),
         isBirthdayPerson: inv.birthdayPersonId === p.personId,
       }));
+      const items =
+        inv.items?.map((item) => ({
+          id: item.id,
+          name: item.name,
+          unitPrice: this.round2(item.unitPrice),
+          quantity: item.quantity,
+          total: this.round2(item.total),
+          participantIds: item.assignments.map((assignment) => assignment.personId),
+        })) ?? undefined;
       return {
         id: inv.id,
         eventId: inv.eventId,
@@ -97,6 +116,7 @@ export class GetPublicEventOverviewUseCase {
         tipAmount: inv.tipAmount,
         birthdayPersonId: inv.birthdayPersonId,
         participations,
+        items,
       };
     });
 

@@ -1,6 +1,6 @@
 import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { randomUUID } from 'crypto';
-import { DivisionMethod, Invoice } from '../../domain/invoice/invoice';
+import { DivisionMethod, Invoice, InvoiceItem } from '../../domain/invoice/invoice';
 import { Participation } from '../../domain/invoice/participation';
 import { EventRepository } from '../ports/event-repository';
 import { InvoiceRepository } from '../ports/invoice-repository';
@@ -14,6 +14,12 @@ type CreateInvoiceInput = {
   participantIds: string[];
   divisionMethod: DivisionMethod;
   consumptions?: Record<string, number>;
+  items?: Array<{
+    name: string;
+    unitPrice: number;
+    quantity: number;
+    participantIds: string[];
+  }>;
   tipAmount?: number;
   birthdayPersonId?: string;
   userId: string;
@@ -102,11 +108,18 @@ export class CreateInvoiceUseCase {
       });
     }
 
+    const itemResult = this.normalizeItems({
+      divisionMethod,
+      items: input.items,
+      participantIds,
+      totalAmount,
+    });
+
     const baseShares = this.calculateBaseShares({
       divisionMethod,
       participantIds,
       totalAmount,
-      consumptions: input.consumptions,
+      consumptions: itemResult.consumptions ?? input.consumptions,
       birthdayPersonId: input.birthdayPersonId,
     });
 
@@ -129,7 +142,10 @@ export class CreateInvoiceUseCase {
       participations,
       tipAmount,
       input.birthdayPersonId,
-      divisionMethod === 'consumption' ? input.consumptions : undefined,
+      divisionMethod === 'consumption'
+        ? itemResult.consumptions ?? input.consumptions
+        : undefined,
+      itemResult.items,
     );
 
     return this._invoiceRepository.create(invoice);
@@ -230,6 +246,134 @@ export class CreateInvoiceUseCase {
     }
 
     return shares;
+  }
+
+  private normalizeItems(params: {
+    divisionMethod: DivisionMethod;
+    items?: Array<{
+      name: string;
+      unitPrice: number;
+      quantity: number;
+      participantIds: string[];
+    }>;
+    participantIds: string[];
+    totalAmount: number;
+  }): { items?: InvoiceItem[]; consumptions?: Record<string, number> } {
+    const { divisionMethod, items, participantIds, totalAmount } = params;
+    if (!items || items.length === 0) {
+      return {};
+    }
+
+    if (divisionMethod !== 'consumption') {
+      throw new BadRequestException({
+        code: 'VALIDATION_ERROR',
+        message: 'Invalid invoice data',
+        fieldErrors: { items: 'Items are only supported for consumption method' },
+      });
+    }
+
+    const participantSet = new Set(participantIds);
+    const normalizedItems: InvoiceItem[] = items.map((item) => {
+      const name = item.name?.trim();
+      const unitPrice = this.round2(Number(item.unitPrice));
+      const quantity = Math.floor(Number(item.quantity));
+      if (!name) {
+        throw new BadRequestException({
+          code: 'VALIDATION_ERROR',
+          message: 'Invalid invoice data',
+          fieldErrors: { items: 'Each item must have a name' },
+        });
+      }
+      if (!Number.isFinite(unitPrice) || unitPrice <= 0) {
+        throw new BadRequestException({
+          code: 'VALIDATION_ERROR',
+          message: 'Invalid invoice data',
+          fieldErrors: { items: 'Each item must have unitPrice > 0' },
+        });
+      }
+      if (!Number.isFinite(quantity) || quantity <= 0) {
+        throw new BadRequestException({
+          code: 'VALIDATION_ERROR',
+          message: 'Invalid invoice data',
+          fieldErrors: { items: 'Each item must have quantity >= 1' },
+        });
+      }
+      const uniqueParticipants = Array.from(new Set(item.participantIds ?? []));
+      if (uniqueParticipants.length === 0) {
+        throw new BadRequestException({
+          code: 'VALIDATION_ERROR',
+          message: 'Invalid invoice data',
+          fieldErrors: { items: 'Each item must have at least one participant' },
+        });
+      }
+      const invalid = uniqueParticipants.filter((id) => !participantSet.has(id));
+      if (invalid.length > 0) {
+        throw new BadRequestException({
+          code: 'VALIDATION_ERROR',
+          message: 'Invalid invoice data',
+          fieldErrors: { items: `Invalid participants in items: ${invalid.join(', ')}` },
+        });
+      }
+
+      const total = this.round2(unitPrice * quantity);
+      const assignments = this.splitItem(total, uniqueParticipants);
+      return {
+        id: randomUUID(),
+        name,
+        unitPrice,
+        quantity,
+        total,
+        assignments,
+      };
+    });
+
+    const totalItems = normalizedItems.reduce((acc, item) => acc + item.total, 0);
+    if (!Number.isFinite(totalItems) || totalItems <= 0) {
+      throw new BadRequestException({
+        code: 'VALIDATION_ERROR',
+        message: 'Invalid invoice data',
+        fieldErrors: { items: 'Items total must be greater than 0' },
+      });
+    }
+    const diff = Math.abs(this.round2(totalAmount - totalItems));
+    if (diff > TOLERANCE) {
+      throw new BadRequestException({
+        code: 'VALIDATION_ERROR',
+        message: `Items total (${totalItems.toFixed(2)}) does not match total (${totalAmount.toFixed(2)})`,
+        fieldErrors: { items: 'Items total must match total within +/-0.01' },
+      });
+    }
+
+    const consumptions = participantIds.reduce<Record<string, number>>((acc, id) => {
+      acc[id] = 0;
+      return acc;
+    }, {});
+    normalizedItems.forEach((item) => {
+      item.assignments.forEach((assignment) => {
+        consumptions[assignment.personId] = this.round2(
+          (consumptions[assignment.personId] ?? 0) + assignment.amount,
+        );
+      });
+    });
+
+    return { items: normalizedItems, consumptions };
+  }
+
+  private splitItem(total: number, participants: string[]) {
+    const n = participants.length;
+    if (n === 0) return [];
+    const per = this.round2(total / n);
+    let allocated = 0;
+    return participants.map((personId, index) => {
+      if (index === n - 1) {
+        return {
+          personId,
+          amount: this.round2(total - allocated),
+        };
+      }
+      allocated = this.round2(allocated + per);
+      return { personId, amount: per };
+    });
   }
 
   private calculateTipShares(tipAmount: number, participantIds: string[]): Record<string, number> {
