@@ -203,6 +203,7 @@ export class InvoiceScanProcessor extends WorkerHost {
       ' - If only lineTotal exists: unitPrice=null, quantity=null, lineTotal=value.',
       " - Patterns like '3 x 2.50' or '3@2.50' indicate quantity and unitPrice.",
       " - If a line shows a quantity and a single price with no unit marker (e.g., '3 ARROZ 192000'), treat the price as lineTotal and infer unitPrice = lineTotal / quantity.",
+      ' - Do NOT include tip/service charge lines or tax lines as items; put them in tipAmount or taxAmount.',
       ' - If unitPrice*quantity does not match lineTotal, keep extracted values and mention in notes.',
       '',
       '3) Totals & taxes:',
@@ -273,7 +274,7 @@ export class InvoiceScanProcessor extends WorkerHost {
 
   private validateAndNormalize(parsed: ParsedInvoice, eventCurrency?: string): ParsedInvoice {
     const warnings: string[] = [];
-    const items = Array.isArray(parsed.items)
+    let items = Array.isArray(parsed.items)
       ? parsed.items
           .map((item) => ({
             name: String(item.name ?? '').trim(),
@@ -290,11 +291,20 @@ export class InvoiceScanProcessor extends WorkerHost {
 
     let subtotal = this.normalizeNumber(parsed.subtotal);
     const taxAmount = this.normalizeNumber(parsed.taxAmount);
-    const tipAmount = this.normalizeNumber(parsed.tipAmount);
+    let tipAmount = this.normalizeNumber(parsed.tipAmount);
     let totalAmount = this.normalizeNumber(parsed.totalAmount);
     const taxIncludedInItems =
       typeof parsed.taxIncludedInItems === 'boolean' ? parsed.taxIncludedInItems : null;
     const notes = parsed.notes ? String(parsed.notes).trim() : null;
+
+    const tipFromItems = this.extractTipFromItems(items);
+    if (tipFromItems.tipAmount !== null) {
+      items = tipFromItems.items;
+      if (tipAmount === null) {
+        tipAmount = tipFromItems.tipAmount;
+        warnings.push('Tip inferred from items.');
+      }
+    }
 
     if (subtotal !== null && subtotal <= 0) warnings.push('Subtotal should be positive.');
     if (taxAmount !== null && taxAmount < 0) warnings.push('Tax should be >= 0.');
@@ -302,6 +312,17 @@ export class InvoiceScanProcessor extends WorkerHost {
     if (totalAmount !== null && totalAmount <= 0) warnings.push('Total should be positive.');
 
     const itemsSum = this.computeItemsSum(items);
+
+    if (tipAmount === null && totalAmount !== null) {
+      const base = subtotal ?? itemsSum;
+      if (base !== null) {
+        const inferred = Number((totalAmount - base - (taxAmount ?? 0)).toFixed(2));
+        if (inferred > 0.01) {
+          tipAmount = inferred;
+          warnings.push('Tip inferred from total minus subtotal.');
+        }
+      }
+    }
     if (totalAmount !== null && tipAmount !== null) {
       const withoutTip = Number((totalAmount - tipAmount).toFixed(2));
       if (withoutTip >= 0) {
@@ -361,6 +382,40 @@ export class InvoiceScanProcessor extends WorkerHost {
     if (value === null || value === undefined || value === '') return null;
     const num = Number(value);
     return Number.isFinite(num) ? Number(num.toFixed(2)) : null;
+  }
+
+  private extractTipFromItems(items: ParsedItem[]) {
+    let tipAmount: number | null = null;
+    const remaining: ParsedItem[] = [];
+    for (const item of items) {
+      if (this.isTipLikeItem(item.name)) {
+        const value =
+          item.lineTotal ??
+          (item.unitPrice !== null && item.quantity !== null
+            ? item.unitPrice * item.quantity
+            : null);
+        if (value !== null) {
+          tipAmount = Number((tipAmount ?? 0) + value);
+          continue;
+        }
+      }
+      remaining.push(item);
+    }
+    return {
+      items: remaining,
+      tipAmount: tipAmount !== null ? Number(tipAmount.toFixed(2)) : null,
+    };
+  }
+
+  private isTipLikeItem(name: string) {
+    const value = name.toLowerCase();
+    return (
+      value.includes('propina') ||
+      value.includes('tip') ||
+      value.includes('gratuity') ||
+      value.includes('service charge') ||
+      value.includes('servicio')
+    );
   }
 
   private computeItemsSum(items: ParsedItem[]) {
