@@ -202,6 +202,7 @@ export class InvoiceScanProcessor extends WorkerHost {
       ' - If unitPrice + lineTotal but no quantity: quantity = lineTotal / unitPrice only if near integer (tol 0.01) and >= 1.',
       ' - If only lineTotal exists: unitPrice=null, quantity=null, lineTotal=value.',
       " - Patterns like '3 x 2.50' or '3@2.50' indicate quantity and unitPrice.",
+      " - If a line shows a quantity and a single price with no unit marker (e.g., '3 ARROZ 192000'), treat the price as lineTotal and infer unitPrice = lineTotal / quantity.",
       ' - If unitPrice*quantity does not match lineTotal, keep extracted values and mention in notes.',
       '',
       '3) Totals & taxes:',
@@ -211,6 +212,7 @@ export class InvoiceScanProcessor extends WorkerHost {
       ' - If a separate tax line exists, set taxIncludedInItems=false.',
       ' - Tip/service charge: if explicitly listed (tip, gratuity, propina, service charge), set tipAmount.',
       ' - totalAmount must EXCLUDE tip. If receipt total includes tip, subtract tip and mention it in notes.',
+      " - If the receipt shows 'total con propina' or similar, return totalAmount without tip and tipAmount separately.",
       ' - Discounts/bonuses should reduce totals; do not treat discount lines as items.',
       '',
       '4) Consistency checks (do not invent):',
@@ -286,7 +288,7 @@ export class InvoiceScanProcessor extends WorkerHost {
           )
       : [];
 
-    const subtotal = this.normalizeNumber(parsed.subtotal);
+    let subtotal = this.normalizeNumber(parsed.subtotal);
     const taxAmount = this.normalizeNumber(parsed.taxAmount);
     const tipAmount = this.normalizeNumber(parsed.tipAmount);
     let totalAmount = this.normalizeNumber(parsed.totalAmount);
@@ -299,18 +301,25 @@ export class InvoiceScanProcessor extends WorkerHost {
     if (tipAmount !== null && tipAmount < 0) warnings.push('Tip should be >= 0.');
     if (totalAmount !== null && totalAmount <= 0) warnings.push('Total should be positive.');
 
+    const itemsSum = this.computeItemsSum(items);
     if (totalAmount !== null && tipAmount !== null) {
       const withoutTip = Number((totalAmount - tipAmount).toFixed(2));
       if (withoutTip >= 0) {
         const subtotalPlusTax = (subtotal ?? 0) + (taxAmount ?? 0);
-        if (
+        const matchesSubtotal =
           (subtotal !== null || taxAmount !== null) &&
-          Math.abs(subtotalPlusTax - withoutTip) <= 0.5
-        ) {
+          Math.abs(subtotalPlusTax - withoutTip) <= 0.5;
+        const matchesItems = itemsSum !== null && Math.abs(itemsSum - withoutTip) <= 0.5;
+        if (matchesSubtotal || matchesItems) {
           totalAmount = withoutTip;
           warnings.push('Total adjusted to exclude tip amount.');
         }
       }
+    }
+
+    if (subtotal === null && itemsSum !== null) {
+      subtotal = itemsSum;
+      warnings.push('Subtotal inferred from items sum.');
     }
 
     if (subtotal !== null && totalAmount !== null) {
@@ -359,5 +368,20 @@ export class InvoiceScanProcessor extends WorkerHost {
     if (value === null || value === undefined || value === '') return null;
     const num = Number(value);
     return Number.isFinite(num) ? Number(num.toFixed(2)) : null;
+  }
+
+  private computeItemsSum(items: ParsedItem[]) {
+    let sum = 0;
+    let hasValue = false;
+    for (const item of items) {
+      if (item.lineTotal !== null) {
+        sum += item.lineTotal;
+        hasValue = true;
+      } else if (item.unitPrice !== null && item.quantity !== null) {
+        sum += item.unitPrice * item.quantity;
+        hasValue = true;
+      }
+    }
+    return hasValue ? Number(sum.toFixed(2)) : null;
   }
 }
