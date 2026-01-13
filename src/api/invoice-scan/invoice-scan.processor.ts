@@ -305,15 +305,8 @@ export class InvoiceScanProcessor extends WorkerHost {
     if (totalAmount !== null && tipAmount !== null) {
       const withoutTip = Number((totalAmount - tipAmount).toFixed(2));
       if (withoutTip >= 0) {
-        const subtotalPlusTax = (subtotal ?? 0) + (taxAmount ?? 0);
-        const matchesSubtotal =
-          (subtotal !== null || taxAmount !== null) &&
-          Math.abs(subtotalPlusTax - withoutTip) <= 0.5;
-        const matchesItems = itemsSum !== null && Math.abs(itemsSum - withoutTip) <= 0.5;
-        if (matchesSubtotal || matchesItems) {
-          totalAmount = withoutTip;
-          warnings.push('Total adjusted to exclude tip amount.');
-        }
+        totalAmount = withoutTip;
+        warnings.push('Total adjusted to exclude tip amount.');
       }
     }
 
