@@ -6,6 +6,8 @@ import { ParticipantModule } from './api/participant/participant.module';
 import { InvoiceModule } from './api/invoice/invoice.module';
 import { SettlementModule } from './api/settlement/settlement.module';
 import { AuthModule } from './api/auth/auth.module';
+import { QueueModule } from './infra/queue/queue.module';
+import { InvoiceScanModule } from './api/invoice-scan/invoice-scan.module';
 
 @Module({
   imports: [
@@ -16,9 +18,11 @@ import { AuthModule } from './api/auth/auth.module';
       },
     ]),
     AuthModule,
+    QueueModule,
     EventModule,
     ParticipantModule,
     InvoiceModule,
+    InvoiceScanModule,
     SettlementModule,
   ],
   providers: [
