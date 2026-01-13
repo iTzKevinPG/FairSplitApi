@@ -147,7 +147,7 @@ export class InvoiceScanProcessor extends WorkerHost {
     if (payload.IsErroredOnProcessing) {
       const message = Array.isArray(payload.ErrorMessage)
         ? payload.ErrorMessage.join(', ')
-        : payload.ErrorMessage ?? 'OCR failed';
+        : (payload.ErrorMessage ?? 'OCR failed');
       throw new Error(message);
     }
 
@@ -213,10 +213,7 @@ export class InvoiceScanProcessor extends WorkerHost {
     }
   }
 
-  private validateAndNormalize(
-    parsed: ParsedInvoice,
-    eventCurrency?: string,
-  ): ParsedInvoice {
+  private validateAndNormalize(parsed: ParsedInvoice, eventCurrency?: string): ParsedInvoice {
     const warnings: string[] = [];
     const items = Array.isArray(parsed.items)
       ? parsed.items
@@ -245,7 +242,9 @@ export class InvoiceScanProcessor extends WorkerHost {
       warnings.push('Subtotal + tip does not match total.');
     }
 
-    const normalizedCurrency = parsed.currency ? String(parsed.currency).trim().toUpperCase() : null;
+    const normalizedCurrency = parsed.currency
+      ? String(parsed.currency).trim().toUpperCase()
+      : null;
     const eventCurrencyValue = eventCurrency ? eventCurrency.trim().toUpperCase() : null;
     if (!normalizedCurrency && eventCurrencyValue) {
       warnings.push('Currency missing, using event currency.');

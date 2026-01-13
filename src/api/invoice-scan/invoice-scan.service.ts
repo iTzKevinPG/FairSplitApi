@@ -23,11 +23,10 @@ export class InvoiceScanService {
   ) {}
 
   async enqueueScan(params: ScanJobData) {
-    const job = await this._queue.add(
-      INVOICE_SCAN_JOB,
-      params,
-      { removeOnComplete: 25, removeOnFail: 25 },
-    );
+    const job = await this._queue.add(INVOICE_SCAN_JOB, params, {
+      removeOnComplete: 25,
+      removeOnFail: 25,
+    });
     return { jobId: job.id?.toString() ?? job.id };
   }
 

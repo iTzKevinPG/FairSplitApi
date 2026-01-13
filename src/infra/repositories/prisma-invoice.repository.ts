@@ -148,9 +148,7 @@ export class PrismaInvoiceRepository implements InvoiceRepository {
       },
       orderBy: { createdAt: 'desc' },
     });
-    return invoices.map(
-      (inv) => this.mapInvoice(inv, inv.participations, inv.items),
-    );
+    return invoices.map((inv) => this.mapInvoice(inv, inv.participations, inv.items));
   }
 
   async findById(id: string): Promise<Invoice | null> {

@@ -143,7 +143,7 @@ export class CreateInvoiceUseCase {
       tipAmount,
       input.birthdayPersonId,
       divisionMethod === 'consumption'
-        ? itemResult.consumptions ?? input.consumptions
+        ? (itemResult.consumptions ?? input.consumptions)
         : undefined,
       itemResult.items,
     );

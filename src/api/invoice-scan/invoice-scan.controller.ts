@@ -220,10 +220,7 @@ export class InvoiceScanController {
   }
 
   @Post('invoices/scan/:jobId/retry')
-  async retryScan(
-    @Param('jobId') jobId: string,
-    @CurrentUser() user: { id: string } | undefined,
-  ) {
+  async retryScan(@Param('jobId') jobId: string, @CurrentUser() user: { id: string } | undefined) {
     return this._scanService.retryScan(jobId, user?.id);
   }
 
