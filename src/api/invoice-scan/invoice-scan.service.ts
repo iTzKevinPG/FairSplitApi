@@ -5,6 +5,7 @@ import { INVOICE_SCAN_JOB, INVOICE_SCAN_QUEUE } from './invoice-scan.constants';
 import { InvoiceScanResultService } from './invoice-scan-result.service';
 import { CreateInvoiceUseCase } from '../../application/use-cases/create-invoice.use-case';
 import type { ConfirmScanDto } from './dto/confirm-scan.dto';
+import { InvoiceScanWorkerManager } from './invoice-scan-worker.manager';
 
 type ScanJobData = {
   eventId: string;
@@ -20,6 +21,7 @@ export class InvoiceScanService {
     @InjectQueue(INVOICE_SCAN_QUEUE) private readonly _queue: Queue,
     private readonly _results: InvoiceScanResultService,
     private readonly _createInvoice: CreateInvoiceUseCase,
+    private readonly _workerManager: InvoiceScanWorkerManager,
   ) {}
 
   async enqueueScan(params: ScanJobData) {
@@ -27,6 +29,7 @@ export class InvoiceScanService {
       removeOnComplete: 25,
       removeOnFail: 25,
     });
+    await this._workerManager.ensureRunning();
     return { jobId: job.id?.toString() ?? job.id };
   }
 
@@ -125,6 +128,7 @@ export class InvoiceScanService {
       removeOnComplete: 25,
       removeOnFail: 25,
     });
+    await this._workerManager.ensureRunning();
     return { jobId: next.id?.toString() ?? next.id };
   }
 }

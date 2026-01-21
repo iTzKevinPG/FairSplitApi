@@ -7,6 +7,7 @@ import { InvoiceScanProcessor } from './invoice-scan.processor';
 import { S3Service } from '../../infra/storage/s3.service';
 import { InvoiceScanRateLimitService } from './invoice-scan-rate-limit.service';
 import { InvoiceScanResultService } from './invoice-scan-result.service';
+import { InvoiceScanWorkerManager } from './invoice-scan-worker.manager';
 import { AuthModule } from '../auth/auth.module';
 import { OptionalAuthGuard } from '../../shared/guards/optional-auth.guard';
 import { PrismaModule } from '../../infra/prisma/prisma.module';
@@ -24,6 +25,7 @@ import { CreateInvoiceUseCase } from '../../application/use-cases/create-invoice
     S3Service,
     InvoiceScanRateLimitService,
     InvoiceScanResultService,
+    InvoiceScanWorkerManager,
     CreateInvoiceUseCase,
     OptionalAuthGuard,
     {

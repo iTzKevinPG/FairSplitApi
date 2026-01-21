@@ -1,7 +1,6 @@
-import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Injectable } from '@nestjs/common';
 import type { Job } from 'bullmq';
-import { INVOICE_SCAN_JOB, INVOICE_SCAN_QUEUE } from './invoice-scan.constants';
+import { INVOICE_SCAN_JOB } from './invoice-scan.constants';
 import { S3Service } from '../../infra/storage/s3.service';
 import { InvoiceScanResultService } from './invoice-scan-result.service';
 
@@ -28,14 +27,11 @@ type ParsedInvoice = {
 };
 
 @Injectable()
-@Processor(INVOICE_SCAN_QUEUE)
-export class InvoiceScanProcessor extends WorkerHost {
+export class InvoiceScanProcessor {
   constructor(
     private readonly _s3Service: S3Service,
     private readonly _results: InvoiceScanResultService,
-  ) {
-    super();
-  }
+  ) {}
 
   async process(
     job: Job<{
